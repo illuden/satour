@@ -3,7 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Seaweed Order Page</title>
+    
+    <title>Alvin's Seaweed Shop</title>
+    <meta name="description" content="Order delicious Korean Seaweed & Red Ginseng here! Delivery to your seat.">
+    
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="🌿 Alvin's Seaweed Shop">
+    <meta property="og:description" content="Best Price & Fresh Delivery! Order now.">
+    <meta property="og:image" content="https://order.alvin.travel/alvin.png">
+    <meta property="og:url" content="https://order.alvin.travel">
+
+    <link rel="icon" type="image/png" href="alvin.png">
+    <link rel="apple-touch-icon" href="alvin.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -12,23 +23,17 @@
         .btn-plus { background-color: #3b82f6; color: white; }
         .btn-minus { background-color: #e5e7eb; color: black; }
         .pb-safe { padding-bottom: 140px; }
-        
-        /* 썸네일 이미지 스타일 */
-        .product-thumb { 
-            width: 80px; 
-            height: 80px; 
-            object-fit: cover; 
-            border-radius: 10px; 
-            border: 1px solid #eee;
-            flex-shrink: 0; 
-        }
+        .product-thumb { width: 80px; height: 80px; object-fit: cover; border-radius: 10px; border: 1px solid #eee; flex-shrink: 0; }
     </style>
 </head>
 <body class="pb-safe">
 
     <div class="bg-blue-600 text-white p-6 rounded-b-3xl shadow-lg mb-5 sticky top-0 z-40">
-        <h1 class="text-2xl font-bold">🌿 Seaweed Order Page</h1>
-        <p class="text-sm opacity-90 mt-1">Order and Pickup tonight!</p>
+        <div class="flex items-center gap-3">
+            <img src="alvin.png" class="w-10 h-10 bg-white rounded-full p-1">
+            <h1 class="text-2xl font-bold">Alvin's Shop</h1>
+        </div>
+        <p class="text-sm opacity-90 mt-2 ml-1">Order and Pickup tonight!</p>
         
         <div class="mt-4 bg-blue-700 p-2 pl-3 rounded-xl flex justify-between items-center">
             <div class="text-xs">
@@ -152,24 +157,18 @@
     </div>
 
     <script>
-        // --- 설정 데이터 ---
         const PRICES = { kim: 12000, ginseng: 70000 };
         const FLAVORS = ['Beef Barbeque', 'Spicy Buldak', 'Corn', 'Wasabi', 'Green Tea(Original)'];
-        
-        // 기본 환율 (API 실패시 대비용)
         let rates = { KRW:1, USD:0.00072, TWD:0.023, HKD:0.0056, MYR:0.0034, EUR:0.00067, AUD:0.0011, PHP:0.041, THB:0.026 };
-        
         let cart = { ginseng: 0 }; 
         FLAVORS.forEach(f => cart[f] = 0);
 
-        // --- 초기 실행 ---
         window.onload = async () => { 
             renderKimSection(); 
             await fetchRates(); 
             calculateTotal(); 
         };
 
-        // --- 환율 API ---
         async function fetchRates() {
             try {
                 const response = await fetch('https://api.exchangerate-api.com/v4/latest/KRW');
@@ -181,7 +180,6 @@
             }
         }
 
-        // --- 환율 표시 업데이트 ---
         function updateCurrencyDisplay() {
             const currency = document.getElementById('currency').value;
             const rate = rates[currency] || 1;
@@ -195,7 +193,6 @@
             calculateTotal();
         }
 
-        // --- 김 섹션 그리기 ---
         function renderKimSection() {
             const container = document.getElementById('kim-section');
             FLAVORS.forEach(flavor => {
@@ -212,27 +209,18 @@
             });
         }
 
-        // --- 수량 업데이트 ---
         function updateQty(item, change) {
             if (cart[item] + change < 0) return;
             cart[item] += change;
-            
             const element = document.getElementById(`qty-${item}`);
             if(element) element.innerText = cart[item];
-            
             calculateTotal();
         }
 
-        // --- 가격 및 할인 계산 로직 ---
         function calculateTotal() {
-            // 김 총 수량 계산
             let totalSeaweedQty = FLAVORS.reduce((sum, f) => sum + cart[f], 0);
             
-            // 할인 로직 적용 (30+10, 10+3, 5+1)
-            let paidQty = 0;
-            let remain = totalSeaweedQty;
-            let freeCount = 0;
-
+            let paidQty = 0, remain = totalSeaweedQty, freeCount = 0;
             let set30 = Math.floor(remain / 40); paidQty += set30 * 30; freeCount += set30 * 10; remain %= 40;
             let set10 = Math.floor(remain / 13); paidQty += set10 * 10; freeCount += set10 * 3; remain %= 13;
             let set5 = Math.floor(remain / 6); paidQty += set5 * 5; freeCount += set5 * 1; remain %= 6;
@@ -240,7 +228,6 @@
 
             let totalKRW = (paidQty * PRICES.kim) + (cart.ginseng * PRICES.ginseng);
 
-            // 화면 표시 업데이트
             document.getElementById('seaweed-total-display').innerText = totalSeaweedQty;
 
             const msgArea = document.getElementById('bonus-msg-area');
@@ -256,12 +243,7 @@
                 } else { 
                     msgBonus.classList.add('hidden'); 
                 }
-                
-                if (showBag) {
-                    msgBag.classList.remove('hidden'); 
-                } else { 
-                    msgBag.classList.add('hidden'); 
-                }
+                if (showBag) { msgBag.classList.remove('hidden'); } else { msgBag.classList.add('hidden'); }
             } else {
                 msgArea.classList.add('hidden');
             }
@@ -284,7 +266,6 @@
             document.getElementById('total-converted').innerText = `≈ ${symbol} ${finalDisplay} ${currency}`;
         }
 
-        // --- 주문 전송 (구글 시트 연동) ---
         function submitOrder() {
             const name = document.getElementById('name').value;
             const group = document.getElementById('group').value;
@@ -295,7 +276,6 @@
                 return; 
             }
             
-            // 주문 내역 정리
             let items = [];
             FLAVORS.forEach(f => { if(cart[f] > 0) items.push(`${f}(${cart[f]})`); });
             
@@ -304,13 +284,11 @@
                 return; 
             }
 
-            // 버튼 로딩 처리
             const btn = document.querySelector('button[onclick="submitOrder()"]');
             const originalText = btn.innerText;
             btn.innerText = "Sending...";
             btn.disabled = true;
 
-            // 전송 데이터 생성
             const data = {
                 name: name,
                 group: group,
@@ -320,7 +298,6 @@
                 totalPrice: `${document.getElementById('total-krw').innerText} (${document.querySelector('input[name="payment"]:checked').value})`
             };
 
-            // ★ 알빈님의 구글 앱스 스크립트 주소 (삽입완료) ★
             const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxwZEPeG5TvjTOYmKtLaYLsG8n6J5Wllwrd3HlaMXgx_pUUtHNG03bDmkHzXVVykIM5/exec";
 
             fetch(SCRIPT_URL, {
