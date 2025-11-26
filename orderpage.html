@@ -11,8 +11,8 @@
         .product-card { background: white; border-radius: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .btn-plus { background-color: #3b82f6; color: white; }
         .btn-minus { background-color: #e5e7eb; color: black; }
-        /* 하단 결제바 여백 */
         .pb-safe { padding-bottom: 140px; }
+        
         /* 썸네일 이미지 스타일 */
         .product-thumb { 
             width: 80px; 
@@ -152,29 +152,50 @@
     </div>
 
     <script>
+        // --- 설정 데이터 ---
         const PRICES = { kim: 12000, ginseng: 70000 };
         const FLAVORS = ['Beef Barbeque', 'Spicy Buldak', 'Corn', 'Wasabi', 'Green Tea(Original)'];
+        
+        // 기본 환율 (API 실패시 대비용)
         let rates = { KRW:1, USD:0.00072, TWD:0.023, HKD:0.0056, MYR:0.0034, EUR:0.00067, AUD:0.0011, PHP:0.041, THB:0.026 };
-        let cart = { ginseng: 0 }; FLAVORS.forEach(f => cart[f] = 0);
+        
+        let cart = { ginseng: 0 }; 
+        FLAVORS.forEach(f => cart[f] = 0);
 
-        window.onload = async () => { renderKimSection(); await fetchRates(); calculateTotal(); };
+        // --- 초기 실행 ---
+        window.onload = async () => { 
+            renderKimSection(); 
+            await fetchRates(); 
+            calculateTotal(); 
+        };
 
+        // --- 환율 API ---
         async function fetchRates() {
             try {
                 const response = await fetch('https://api.exchangerate-api.com/v4/latest/KRW');
-                const data = await response.json(); rates = data.rates; updateCurrencyDisplay();
-            } catch (e) { console.log("Rate fetch failed"); }
+                const data = await response.json(); 
+                rates = data.rates; 
+                updateCurrencyDisplay();
+            } catch (e) { 
+                console.log("Rate fetch failed"); 
+            }
         }
 
+        // --- 환율 표시 업데이트 ---
         function updateCurrencyDisplay() {
             const currency = document.getElementById('currency').value;
             const rate = rates[currency] || 1;
             const displayEl = document.getElementById('rate-display');
-            if (currency === 'KRW') displayEl.innerText = "1 KRW = 1 KRW";
-            else displayEl.innerText = `1 ${currency} ≈ ${(1/rate).toFixed(1)} KRW`;
+            
+            if (currency === 'KRW') {
+                displayEl.innerText = "1 KRW = 1 KRW";
+            } else {
+                displayEl.innerText = `1 ${currency} ≈ ${(1/rate).toFixed(1)} KRW`;
+            }
             calculateTotal();
         }
 
+        // --- 김 섹션 그리기 ---
         function renderKimSection() {
             const container = document.getElementById('kim-section');
             FLAVORS.forEach(flavor => {
@@ -191,17 +212,26 @@
             });
         }
 
+        // --- 수량 업데이트 ---
         function updateQty(item, change) {
             if (cart[item] + change < 0) return;
             cart[item] += change;
+            
             const element = document.getElementById(`qty-${item}`);
             if(element) element.innerText = cart[item];
+            
             calculateTotal();
         }
 
+        // --- 가격 및 할인 계산 로직 ---
         function calculateTotal() {
+            // 김 총 수량 계산
             let totalSeaweedQty = FLAVORS.reduce((sum, f) => sum + cart[f], 0);
-            let paidQty = 0, remain = totalSeaweedQty, freeCount = 0;
+            
+            // 할인 로직 적용 (30+10, 10+3, 5+1)
+            let paidQty = 0;
+            let remain = totalSeaweedQty;
+            let freeCount = 0;
 
             let set30 = Math.floor(remain / 40); paidQty += set30 * 30; freeCount += set30 * 10; remain %= 40;
             let set10 = Math.floor(remain / 13); paidQty += set10 * 10; freeCount += set10 * 3; remain %= 13;
@@ -210,7 +240,7 @@
 
             let totalKRW = (paidQty * PRICES.kim) + (cart.ginseng * PRICES.ginseng);
 
-            // ★ 김 총 수량 업데이트 ★
+            // 화면 표시 업데이트
             document.getElementById('seaweed-total-display').innerText = totalSeaweedQty;
 
             const msgArea = document.getElementById('bonus-msg-area');
@@ -220,76 +250,94 @@
 
             if (freeCount > 0 || showBag) {
                 msgArea.classList.remove('hidden');
-                if (freeCount > 0) { msgBonus.innerText = `✅ Promo Applied: ${freeCount} pack(s) are FREE!`; msgBonus.classList.remove('hidden'); } 
-                else msgBonus.classList.add('hidden');
-                if (showBag) msgBag.classList.remove('hidden'); else msgBag.classList.add('hidden');
-            } else msgArea.classList.add('hidden');
+                if (freeCount > 0) { 
+                    msgBonus.innerText = `✅ Promo Applied: ${freeCount} pack(s) are FREE!`; 
+                    msgBonus.classList.remove('hidden'); 
+                } else { 
+                    msgBonus.classList.add('hidden'); 
+                }
+                
+                if (showBag) {
+                    msgBag.classList.remove('hidden'); 
+                } else { 
+                    msgBag.classList.add('hidden'); 
+                }
+            } else {
+                msgArea.classList.add('hidden');
+            }
 
             document.getElementById('total-krw').innerText = `${totalKRW.toLocaleString()} KRW`;
+            
             const currency = document.getElementById('currency').value;
             const rate = rates[currency] || 1;
             const convertedPrice = (totalKRW * rate);
 
             let symbol = '$';
-            if (currency === 'KRW') symbol = '₩'; else if (currency === 'EUR') symbol = '€';
-            else if (currency === 'MYR') symbol = 'RM'; else if (currency === 'PHP') symbol = '₱';
-            else if (currency === 'THB') symbol = '฿'; else if (currency === 'TWD') symbol = 'NT$';
+            if (currency === 'KRW') symbol = '₩'; 
+            else if (currency === 'EUR') symbol = '€';
+            else if (currency === 'MYR') symbol = 'RM'; 
+            else if (currency === 'PHP') symbol = '₱';
+            else if (currency === 'THB') symbol = '฿'; 
+            else if (currency === 'TWD') symbol = 'NT$';
             
             let finalDisplay = currency === 'KRW' ? `${totalKRW.toLocaleString()}` : convertedPrice.toFixed(2);
             document.getElementById('total-converted').innerText = `≈ ${symbol} ${finalDisplay} ${currency}`;
         }
 
-        // --- ★ 주문 제출 & 구글 시트 전송 (완성됨) ★ ---
+        // --- 주문 전송 (구글 시트 연동) ---
         function submitOrder() {
             const name = document.getElementById('name').value;
             const group = document.getElementById('group').value;
-            const totalKRW = document.getElementById('total-krw').innerText;
-            const payment = document.querySelector('input[name="payment"]:checked').value;
             
-            const seaweedTotal = document.getElementById('seaweed-total-display').innerText;
-            const ginsengTotal = document.getElementById('qty-ginseng').innerText;
-
-            if(!name || !group) { alert("Please enter Name and Group!"); document.getElementById('name').focus(); return; }
-
-            // 김 상세 내역
+            if(!name || !group) { 
+                alert("Please enter Name and Group!"); 
+                document.getElementById('name').focus(); 
+                return; 
+            }
+            
+            // 주문 내역 정리
             let items = [];
-            FLAVORS.forEach(f => { if(cart[f]>0) items.push(`${f}(${cart[f]})`); });
+            FLAVORS.forEach(f => { if(cart[f] > 0) items.push(`${f}(${cart[f]})`); });
             
-            if(items.length === 0 && cart.ginseng === 0) { alert("Please select items!"); return; }
+            if(items.length === 0 && cart.ginseng === 0) { 
+                alert("Please select items!"); 
+                return; 
+            }
 
-            // 데이터 포장
-            const orderData = {
-                name: name,
-                group: group,
-                items: items.join(', '),
-                seaweedCount: seaweedTotal,
-                ginsengCount: ginsengTotal,
-                totalPrice: `${totalKRW} (${payment})`
-            };
-
+            // 버튼 로딩 처리
             const btn = document.querySelector('button[onclick="submitOrder()"]');
             const originalText = btn.innerText;
             btn.innerText = "Sending...";
             btn.disabled = true;
 
-            // ★ 가이드님이 주신 구글 앱스 스크립트 주소 ★
-            const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxwZEPeG5TvjTOYmKtLaYLsG8n6J5Wllwrd3HlaMXgx_pUUtHNG03bDmkHzXVVykIM5/exec"; 
+            // 전송 데이터 생성
+            const data = {
+                name: name,
+                group: group,
+                items: items.join(', '),
+                seaweedCount: document.getElementById('seaweed-total-display').innerText,
+                ginsengCount: document.getElementById('qty-ginseng').innerText,
+                totalPrice: `${document.getElementById('total-krw').innerText} (${document.querySelector('input[name="payment"]:checked').value})`
+            };
+
+            // ★ 알빈님의 구글 앱스 스크립트 주소 (삽입완료) ★
+            const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxwZEPeG5TvjTOYmKtLaYLsG8n6J5Wllwrd3HlaMXgx_pUUtHNG03bDmkHzXVVykIM5/exec";
 
             fetch(SCRIPT_URL, {
                 method: 'POST',
                 mode: 'no-cors',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(orderData)
+                body: JSON.stringify(data)
             })
-            .then(response => {
-                alert(`✅ Order Sent Successfully!\n\nThank you, ${name}. See you soon!`);
-                window.location.reload();
+            .then(() => { 
+                alert(`✅ Order Sent Successfully!\n\nThank you, ${name}.`); 
+                window.location.reload(); 
             })
-            .catch(error => {
-                alert("Error! Please show your screen to the guide.");
-                console.error('Error:', error);
-                btn.innerText = originalText;
-                btn.disabled = false;
+            .catch(e => { 
+                alert("Error! Please try again."); 
+                console.error(e);
+                btn.innerText = originalText; 
+                btn.disabled = false; 
             });
         }
     </script>
