@@ -31,7 +31,7 @@
 
     <div id="header-area" class="bg-blue-600 text-white p-6 rounded-b-3xl shadow-lg mb-5 sticky top-0 z-40">
         <div class="flex items-center gap-3">
-            <img src="alvin.png" class="w-10 h-10 bg-white rounded-full p-1">
+            <img id="shop-logo" src="alvin.png" class="w-10 h-10 bg-white rounded-full p-1 object-cover">
             <h1 class="text-2xl font-bold" id="shop-title">SA Tour Shop</h1>
         </div>
         <p class="text-sm opacity-90 mt-2 ml-1">Order and Pickup tonight!</p>
@@ -156,7 +156,6 @@
     </div>
 
     <script>
-        // ★★★ 가이드 리스트 + Wrong Access 추가됨 ★★★
         const GUIDES = {
             "alvin": "https://script.google.com/macros/s/AKfycbxwZEPeG5TvjTOYmKtLaYLsG8n6J5Wllwrd3HlaMXgx_pUUtHNG03bDmkHzXVVykIM5/exec",
             "linda": "https://script.google.com/macros/s/AKfycby0OtbjOI8PD31Y32l6mnghJzNR7mTG6GcNIOnvnY_Ldl2Arwf7XQl2brnY0ms-EhobSw/exec",
@@ -177,30 +176,38 @@
             "jake": "https://script.google.com/macros/s/AKfycbycams3O5ZVL8EZdxKGhj0VvLEksznGnj5VPnmtKgnbHV280JFm0IvdQYEQ7JKot3Il/exec",
             "sherry": "https://script.google.com/macros/s/AKfycbxRdO3vzkjOlyr2csbMAbHxzG-jkxoYxTPU6fObdhIK-sBg6ye2DCiRtmaK6mkd-vFk/exec",
             "yuii": "https://script.google.com/macros/s/AKfycbxhFBtd3cnoox1Y-YCnt392wQpMC4XzgYK5zbvXpVs-YtHHh94ZY3Te4kUyodOQ_Pc/exec",
-            // ★ 잘못된 접근은 여기로 (Wrong Access) ★
             "wrong": "https://script.google.com/macros/s/AKfycbxLrooP6L8EeYvFoFgZo5cjEgjTveSRy9rC6irM5gYa16yDIKQQdPhsO8unhoYbqB3-hQ/exec"
         };
 
-        // --- ID 확인 로직 (안전장치 강화) ---
         const urlParams = new URLSearchParams(window.location.search);
         let currentGuide = urlParams.get('id'); 
 
-        // 1. ID가 아예 없거나 (그냥 접속), 2. 명단에 없는 이상한 ID면 -> 'wrong'으로 처리
-        if (!currentGuide || !GUIDES[currentGuide.toLowerCase()]) {
-            currentGuide = "wrong"; 
+        // 1. ID가 없거나, 명단에 없으면 -> 'wrong' (잘못된 접근 격리)
+        // 2. 단, 'alvin'은 특별히 보호 (루트 접속은 alvin으로) -> 가이드님 요청: "Original is mine"
+        if (!currentGuide) {
+            currentGuide = "alvin"; // 아무것도 안치고 들어오면 알빈님꺼
+        } else if (!GUIDES[currentGuide.toLowerCase()]) {
+            currentGuide = "wrong"; // 이상한거 치면 쓰레기통행
         } else {
             currentGuide = currentGuide.toLowerCase();
         }
 
-        // --- 상단 제목 표시 (Wrong일 때는 그냥 일반 제목 표시) ---
-        if (currentGuide === "wrong") {
+        // --- ★ 로고 & 제목 변경 로직 (핵심) ★ ---
+        if (currentGuide === "alvin") {
+            // 알빈님만 다람쥐
+            document.getElementById('shop-logo').src = "alvin.png";
+            document.getElementById('shop-title').innerText = "Alvin's Shop";
+        } else if (currentGuide === "wrong") {
+            // 잘못된 접근
+            document.getElementById('shop-logo').src = "Seaweed.jpg";
             document.getElementById('shop-title').innerText = "SA Tour Shop";
         } else {
+            // 다른 가이드들은 모두 김 사진
+            document.getElementById('shop-logo').src = "Seaweed.jpg"; 
             const guideName = currentGuide.charAt(0).toUpperCase() + currentGuide.slice(1);
             document.getElementById('shop-title').innerText = `${guideName}'s Shop`;
         }
 
-        // --- (이하 나머지 코드는 동일) ---
         const PRICES = { kim: 12000, ginseng: 70000 };
         const FLAVORS = ['Beef Barbeque (韓牛)', 'Spicy Buldak (辣雞)', 'Corn (玉米)', 'Wasabi (芥末)', 'Green Tea - Original (原味)'];
         let rates = { KRW:1, USD:0.00072, TWD:0.023, HKD:0.0056, MYR:0.0034, EUR:0.00067, AUD:0.0011, PHP:0.041, THB:0.026 };
@@ -283,7 +290,6 @@
                 onlyPrice: totalKRW, paymentMethod: payment
             };
 
-            // ★ 라우터: 'wrong'이면 잘못된 접근용 시트로 전송 ★
             const SCRIPT_URL = GUIDES[currentGuide]; 
 
             fetch(SCRIPT_URL, {
@@ -302,8 +308,12 @@
             document.getElementById('rcpt-name').innerText = name;
             document.getElementById('rcpt-group').innerText = group;
             
-            // 영수증 가이드 표시 로직 (Wrong이면 기본값)
-            let displayGuideName = currentGuide === "wrong" ? "SA Tour" : (currentGuide.charAt(0).toUpperCase() + currentGuide.slice(1));
+            let displayGuideName = "SA Tour";
+            if (currentGuide === "alvin") {
+                displayGuideName = "Alvin";
+            } else if (currentGuide !== "wrong") {
+                displayGuideName = currentGuide.charAt(0).toUpperCase() + currentGuide.slice(1);
+            }
             document.getElementById('rcpt-guide').innerText = displayGuideName;
 
             const itemsHtml = items.map(i => `<div class="flex justify-between"><span>${i.split(':')[0]}</span><span class="font-bold">${i.split(':')[1]}</span></div>`).join('');
