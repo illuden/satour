@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
     <title>Seaweed Order Form</title>
     <meta name="description" content="Order delicious Korean Seaweed & Red Ginseng here! Delivery to your seat.">
     <meta property="og:type" content="website">
@@ -31,7 +32,7 @@
     <div id="header-area" class="bg-blue-600 text-white p-6 rounded-b-3xl shadow-lg mb-5 sticky top-0 z-40">
         <div class="flex items-center gap-3">
             <img src="alvin.png" class="w-10 h-10 bg-white rounded-full p-1">
-            <h1 class="text-2xl font-bold">Seaweed Order Form</h1>
+            <h1 class="text-2xl font-bold" id="shop-title">SA Tour Shop</h1>
         </div>
         <p class="text-sm opacity-90 mt-2 ml-1">Order and Pickup tonight!</p>
         
@@ -121,13 +122,12 @@
 
     <div id="receipt-screen" class="hidden px-4 py-10 fade-in">
         <div class="bg-white rounded-2xl shadow-xl p-6 text-center border-t-8 border-green-500">
-            <div class="w-16 h-16 bg-green-100 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
-                <i class="fa-solid fa-check"></i>
-            </div>
+            <div class="w-16 h-16 bg-green-100 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl"><i class="fa-solid fa-check"></i></div>
             <h2 class="text-2xl font-bold text-gray-800 mb-1">Order Successful!</h2>
             <p class="text-sm text-gray-500 mb-6">Thank you for your order.</p>
-            
             <div class="bg-gray-50 rounded-lg p-4 text-left space-y-2 mb-6 text-sm border border-gray-100">
+                <div class="flex justify-between"><span class="text-gray-500">Guide</span><span class="font-bold text-blue-600" id="rcpt-guide"></span></div>
+                <div class="border-t border-gray-200 my-2"></div>
                 <div class="flex justify-between"><span class="text-gray-500">Name</span><span class="font-bold text-gray-800" id="rcpt-name"></span></div>
                 <div class="flex justify-between"><span class="text-gray-500">Group</span><span class="font-bold text-gray-800" id="rcpt-group"></span></div>
                 <div class="border-t border-gray-200 my-2"></div>
@@ -135,17 +135,12 @@
                 <div class="border-t border-gray-200 my-2"></div>
                 <div class="flex justify-between items-center pt-1">
                     <span class="text-gray-500 font-bold">Total</span>
-                    <div class="text-right">
-                        <div class="text-blue-600 font-bold text-lg" id="rcpt-price"></div>
-                        <div class="text-xs text-gray-400" id="rcpt-method"></div>
-                    </div>
+                    <div class="text-right"><div class="text-blue-600 font-bold text-lg" id="rcpt-price"></div><div class="text-xs text-gray-400" id="rcpt-method"></div></div>
                 </div>
             </div>
-
-            <button onclick="copyReceipt()" id="btn-copy" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 px-4 rounded-xl mb-3 flex items-center justify-center gap-2 transition">
-                <i class="fa-regular fa-copy"></i> Copy Order Details
-            </button>
+            <button onclick="copyReceipt()" id="btn-copy" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-3 px-4 rounded-xl mb-3 flex items-center justify-center gap-2 transition"><i class="fa-regular fa-copy"></i> Copy Order Details</button>
             <button onclick="window.location.reload()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl transition">Place New Order</button>
+            <p class="text-xs text-gray-400 mt-4">📸 Please screenshot this page for your record.</p>
         </div>
     </div>
 
@@ -161,15 +156,53 @@
     </div>
 
     <script>
+        // ★★★ 가이드 리스트 + Wrong Access 추가됨 ★★★
+        const GUIDES = {
+            "alvin": "https://script.google.com/macros/s/AKfycbxwZEPeG5TvjTOYmKtLaYLsG8n6J5Wllwrd3HlaMXgx_pUUtHNG03bDmkHzXVVykIM5/exec",
+            "linda": "https://script.google.com/macros/s/AKfycby0OtbjOI8PD31Y32l6mnghJzNR7mTG6GcNIOnvnY_Ldl2Arwf7XQl2brnY0ms-EhobSw/exec",
+            "jesse": "https://script.google.com/macros/s/AKfycbwaNjgH1K4Z7dDu6SCFHgZcDfvFVQKlTtLBKPXg62T5GEkbykXT5Cs4xCuIqg_RqmQ/exec",
+            "mina": "https://script.google.com/macros/s/AKfycbxzK96QW2ell2DuYVqp6HexU8FW1NXdK8N1SHkEA4g5VoJ0HR7bbVrYk9_LomQSWZZTrw/exec",
+            "marcos": "https://script.google.com/macros/s/AKfycbwbLwfyyBMeBgvDo4bHn9gciRPOOyzCHyfiqe-vHAvsqsly8zeztefFbEgmNTbIPJEJxA/exec",
+            "david": "https://script.google.com/macros/s/AKfycby5bajgTgo9DCwXxFHmw7Bs_bDGTe_CaXx3WKlEjAE_-FFVRpef36aqNBN0fm4juIae/exec",
+            "leah": "https://script.google.com/macros/s/AKfycbzqtzPUWqBO_cr36y9wcBOvlmA_tbe3r4uKSFVNiIWxYCqGSHDvENJ_Tn5vUhlI1KW2/exec",
+            "yamy": "https://script.google.com/macros/s/AKfycbzLxAGx5uJ0MXCT7PzbY2tGoKJ-0QySutMLK3aFXPUiQS7CHOTdaVSeJHA6-P3917GV/exec",
+            "zero": "https://script.google.com/macros/s/AKfycbyChZHjOkrAdayo-knzXiLEMgF-Be3ObltKK0ZSwPaCRr3m-07OI-Le47guQa4n_k0SAw/exec",
+            "alex": "https://script.google.com/macros/s/AKfycbzvHaW8cHlIf0mf95kx8GTZptt058Mj63oV_XPeTFyim2h56hiD1btYulGofq7ekk-QYw/exec",
+            "rose": "https://script.google.com/macros/s/AKfycbzpm2CHq1JpF2M7bZWTauDwWXTkJi4YJSydsVLWRrsuuFquu4z0fpqVQdxTPTjgfUlA8g/exec",
+            "ck": "https://script.google.com/macros/s/AKfycbw7lbkyd5XcKnUAN36Zh79_XrYw1crSdD1BUzK3HUIbJUonr1A6-t1KQpwwUg8zvLHM/exec",
+            "joe": "https://script.google.com/macros/s/AKfycbzw03NikqvyfyqkWVpUV4iILl8ZIqtk9h4xVwIrKc9ZLzAJXyQsDge1ea_1mMPOYLx0Wg/exec",
+            "connor": "https://script.google.com/macros/s/AKfycbxMmasu6rW1Q1_C6LXjcfDrImP0VyEkyVuWiS12riO1jqIKCcBy0waVUB6iiHhrQ5nSHA/exec",
+            "josh": "https://script.google.com/macros/s/AKfycbwao2hMkb3Jt8QvcWzaun_l0qXcFMhot0mBmGTk8wbxYW4hpzrzD4oR5tWad2cydCFN/exec",
+            "nana": "https://script.google.com/macros/s/AKfycbyqTvYabH1a_B5K68clbukxkYWEf8WetDlfo91UWBP6e3Ze87Zl_cDN45Q82E9mN9b7/exec",
+            "jake": "https://script.google.com/macros/s/AKfycbycams3O5ZVL8EZdxKGhj0VvLEksznGnj5VPnmtKgnbHV280JFm0IvdQYEQ7JKot3Il/exec",
+            "sherry": "https://script.google.com/macros/s/AKfycbxRdO3vzkjOlyr2csbMAbHxzG-jkxoYxTPU6fObdhIK-sBg6ye2DCiRtmaK6mkd-vFk/exec",
+            "yuii": "https://script.google.com/macros/s/AKfycbxhFBtd3cnoox1Y-YCnt392wQpMC4XzgYK5zbvXpVs-YtHHh94ZY3Te4kUyodOQ_Pc/exec",
+            // ★ 잘못된 접근은 여기로 (Wrong Access) ★
+            "wrong": "https://script.google.com/macros/s/AKfycbxLrooP6L8EeYvFoFgZo5cjEgjTveSRy9rC6irM5gYa16yDIKQQdPhsO8unhoYbqB3-hQ/exec"
+        };
+
+        // --- ID 확인 로직 (안전장치 강화) ---
+        const urlParams = new URLSearchParams(window.location.search);
+        let currentGuide = urlParams.get('id'); 
+
+        // 1. ID가 아예 없거나 (그냥 접속), 2. 명단에 없는 이상한 ID면 -> 'wrong'으로 처리
+        if (!currentGuide || !GUIDES[currentGuide.toLowerCase()]) {
+            currentGuide = "wrong"; 
+        } else {
+            currentGuide = currentGuide.toLowerCase();
+        }
+
+        // --- 상단 제목 표시 (Wrong일 때는 그냥 일반 제목 표시) ---
+        if (currentGuide === "wrong") {
+            document.getElementById('shop-title').innerText = "SA Tour Shop";
+        } else {
+            const guideName = currentGuide.charAt(0).toUpperCase() + currentGuide.slice(1);
+            document.getElementById('shop-title').innerText = `${guideName}'s Shop`;
+        }
+
+        // --- (이하 나머지 코드는 동일) ---
         const PRICES = { kim: 12000, ginseng: 70000 };
-        const FLAVORS = [
-            'Beef Barbeque (韓牛)', 
-            'Spicy Buldak (辣雞)', 
-            'Corn (玉米)', 
-            'Wasabi (芥末)', 
-            'Green Tea - Original (原味)'
-        ];
-        
+        const FLAVORS = ['Beef Barbeque (韓牛)', 'Spicy Buldak (辣雞)', 'Corn (玉米)', 'Wasabi (芥末)', 'Green Tea - Original (原味)'];
         let rates = { KRW:1, USD:0.00072, TWD:0.023, HKD:0.0056, MYR:0.0034, EUR:0.00067, AUD:0.0011, PHP:0.041, THB:0.026 };
         let cart = { ginseng: 0 }; FLAVORS.forEach(f => cart[f] = 0);
         let receiptText = ""; 
@@ -216,14 +249,11 @@
             let s30=Math.floor(r/40); p+=s30*30; free+=s30*10; r%=40;
             let s10=Math.floor(r/13); p+=s10*10; free+=s10*3; r%=13;
             let s5=Math.floor(r/6); p+=s5*5; free+=s5*1; r%=6; p+=r;
-            
             document.getElementById('seaweed-total-display').innerText = t;
             let krw = (p*PRICES.kim) + (cart.ginseng*PRICES.ginseng);
-            
             const area=document.getElementById('bonus-msg-area'), msg=document.getElementById('bonus-msg'), bag=document.getElementById('bag-msg');
             let showBag=(t>=10);
             if(free>0||showBag) { area.classList.remove('hidden'); if(free>0){msg.innerText=`✅ Promo Applied: ${free} pack(s) are FREE!`;msg.classList.remove('hidden');}else{msg.classList.add('hidden');} if(showBag)bag.classList.remove('hidden');else bag.classList.add('hidden'); } else area.classList.add('hidden');
-            
             document.getElementById('total-krw').innerText = `${krw.toLocaleString()} KRW`;
             const cur = document.getElementById('currency').value; const rate = rates[cur]||1;
             const sym = {'KRW':'₩','USD':'$','TWD':'NT$','HKD':'$','MYR':'RM','AUD':'$','PHP':'₱','THB':'฿','EUR':'€'}[cur] || '$';
@@ -233,11 +263,8 @@
         function submitOrder() {
             const name=document.getElementById('name').value, group=document.getElementById('group').value;
             if(!name||!group){alert("Please enter Name and Group!");return;}
-            
-            let items=[]; 
-            FLAVORS.forEach(f=>{if(cart[f]>0)items.push(`${f}: ${cart[f]}`)});
-            if(cart.ginseng>0) items.push(`Red Ginseng: ${cart.ginseng}`);
-
+            let items=[]; FLAVORS.forEach(f=>{if(cart[f]>0)items.push(`${f}: ${cart[f]}`)});
+            if(cart.ginseng>0) items.push(`Red Ginseng Stick (紅參): ${cart.ginseng}`);
             if(items.length===0){alert("Please select items!");return;}
 
             const btn=document.querySelector('button[onclick="submitOrder()"]'); const txt=btn.innerText; btn.innerText="Sending..."; btn.disabled=true;
@@ -246,30 +273,24 @@
             const payment = document.querySelector('input[name="payment"]:checked').value;
             const converted = document.getElementById('total-converted').innerText;
 
-            // ★ 서버로 보낼 데이터를 요청하신 대로 쪼개서 포장 ★
             const data = {
-                name: name, 
-                group: group,
-                qtyBeef: cart['Beef Barbeque (韓牛)'],
-                qtySpicy: cart['Spicy Buldak (辣雞)'],
-                qtyCorn: cart['Corn (玉米)'],
-                qtyWasabi: cart['Wasabi (芥末)'],
+                name: name, group: group, 
+                qtyBeef: cart['Beef Barbeque (韓牛)'], qtySpicy: cart['Spicy Buldak (辣雞)'],
+                qtyCorn: cart['Corn (玉米)'], qtyWasabi: cart['Wasabi (芥末)'],
                 qtyGreen: cart['Green Tea - Original (原味)'],
                 seaweedTotal: document.getElementById('seaweed-total-display').innerText,
                 ginsengCount: document.getElementById('qty-ginseng').innerText,
-                onlyPrice: totalKRW,        // 60,000 KRW
-                paymentMethod: payment      // Cash 또는 Card
+                onlyPrice: totalKRW, paymentMethod: payment
             };
 
-            // 알빈님 구글 앱스 스크립트 주소
-            const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxwZEPeG5TvjTOYmKtLaYLsG8n6J5Wllwrd3HlaMXgx_pUUtHNG03bDmkHzXVVykIM5/exec";
+            // ★ 라우터: 'wrong'이면 잘못된 접근용 시트로 전송 ★
+            const SCRIPT_URL = GUIDES[currentGuide]; 
 
             fetch(SCRIPT_URL, {
                 method: 'POST', mode: 'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)
             }).then(()=>{ 
                 showReceipt(name, group, items, totalKRW, payment, converted);
-            })
-              .catch(e=>{ alert("Error!"); btn.innerText=txt; btn.disabled=false; });
+            }).catch(e=>{ alert("Error!"); btn.innerText=txt; btn.disabled=false; });
         }
 
         function showReceipt(name, group, items, price, method, converted) {
@@ -278,17 +299,18 @@
             document.getElementById('header-area').classList.add('hidden');
             document.getElementById('receipt-screen').classList.remove('hidden');
             window.scrollTo(0, 0);
-
             document.getElementById('rcpt-name').innerText = name;
             document.getElementById('rcpt-group').innerText = group;
             
+            // 영수증 가이드 표시 로직 (Wrong이면 기본값)
+            let displayGuideName = currentGuide === "wrong" ? "SA Tour" : (currentGuide.charAt(0).toUpperCase() + currentGuide.slice(1));
+            document.getElementById('rcpt-guide').innerText = displayGuideName;
+
             const itemsHtml = items.map(i => `<div class="flex justify-between"><span>${i.split(':')[0]}</span><span class="font-bold">${i.split(':')[1]}</span></div>`).join('');
             document.getElementById('rcpt-items').innerHTML = itemsHtml;
-            
             document.getElementById('rcpt-price').innerText = converted; 
             document.getElementById('rcpt-method').innerText = `${price} / ${method}`; 
-
-            receiptText = `[Order Receipt]\nName: ${name}\nGroup: ${group}\n\n${items.join('\n')}\n\nTotal: ${price}\n(${converted})`;
+            receiptText = `[Order Receipt]\nGuide: ${displayGuideName}\nName: ${name}\nGroup: ${group}\n\n${items.join('\n')}\n\nTotal: ${price}\n(${converted})`;
         }
 
         function copyReceipt() {
